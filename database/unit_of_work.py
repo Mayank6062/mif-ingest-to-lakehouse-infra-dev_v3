@@ -1,1 +1,0 @@
-"""Transaction boundary helper."""

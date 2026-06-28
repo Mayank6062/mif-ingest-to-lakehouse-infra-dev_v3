@@ -268,10 +268,48 @@ FRONTEND (UI; depends on API contract only)
 - **Never imported by:** services/, repositories/, langgraph/
 
 #### **backend/repositories/**
-- **Exports:** Repository classes (UserRepo, DraftRepo, etc.)
+- **Exports:** Repository classes (UserRepo, DraftRepo, etc.), UnitOfWork pattern coordinator
 - **Imports from:** models/, core/, database/
 - **Imports allowed from:** services/, langgraph/ (via services only)
 - **Never imports:** services/, api/, knowledge/ (except configuration constants)
+
+**Transaction Control Semantics (FROZEN):**
+
+Three transaction patterns exist. Services must choose ONE per operation:
+
+1. **Pattern: Simple Single-Repo Query** (read-only or single table)
+   - Usage: `async with lifespan_session() as session` or `Depends(get_session)`
+   - Auto-commit: YES (on success)
+   - Commit control: Automatic (implicit)
+   - Use case: Read-only queries, session lookups, single-repository CRUD
+   - Example: `SessionService.get_session(session_id)` → reads sessions table
+   - Rule: Do NOT wrap single-repo operations in UnitOfWork (redundant double-commit)
+
+2. **Pattern: Multi-Repo Atomic Operation** (multiple tables, must succeed together)
+   - Usage: `async with UnitOfWork(session) as uow`
+   - Auto-commit: YES (in __aexit__ on success)
+   - Commit control: Explicit (service controls commit boundary)
+   - Use case: Draft mutations (job + files + snapshot), PR creation, conflict resolution
+   - Example: `DraftService.add_glue_job_to_draft(draft_id)` → job + files + snapshot
+   - Rule: Services MUST use UnitOfWork for multi-step atomic changes
+   - Transaction boundary: All repos in the UoW share one session/transaction
+
+3. **Pattern: Background Task / Script** (manual, explicit commit)
+   - Usage: `async with lifespan_session() as session` with explicit `await session.commit()`
+   - Auto-commit: NO (manual)
+   - Commit control: Explicit (caller decides when)
+   - Use case: Batch operations, scheduled tasks, maintenance scripts
+   - Example: Cleanup expired sessions, backfill data
+   - Rule: Scripts must explicitly call `session.commit()` or `session.rollback()`
+
+**Enforcement:**
+- `database.get_session()` is FastAPI request-scoped, auto-commits on success
+- `repositories.UnitOfWork` is service-scoped, auto-commits on context exit
+- Both patterns are valid; misuse creates confusing semantics
+- Rule: Do not mix patterns in single operation (get_session + UnitOfWork together)
+- If service receives session from Depends(get_session), do NOT wrap in UnitOfWork
+
+**Reference:** Backend Module Architecture §2.9 (Repository Layer)
 
 #### **backend/services/**
 - **Exports:** Service classes (ValidationService, DraftService, etc.)
@@ -435,7 +473,7 @@ FRONTEND (UI; depends on API contract only)
 | **database/engine.py** | SQLAlchemy engine configuration | core/ | repositories/, session.py | P1 |
 | **database/session.py** | SQLAlchemy sessionmaker factory | engine.py | repositories/ | P1 |
 | **database/base.py** | Declarative base + common mixins | core/ | models/ | P2 |
-| **database/unit_of_work.py** | UnitOfWork pattern (transaction coordinator) | repositories/ | services/ | P2 |
+| **backend/repositories/uow.py** | UnitOfWork pattern (transaction coordinator) | database/ | services/ | P2 |
 | **database/migrations/env.py** | Alembic environment | None | Alembic CLI | P2 |
 | **database/migrations/versions/001_initial_schema.py** | Create users, sessions, drafts, snapshots, etc. | None (SQL) | Alembic CLI | P2 |
 | **database/migrations/versions/002_add_jobs_table.py** | draft_glue_jobs table | None (SQL) | Alembic CLI | P2 |
