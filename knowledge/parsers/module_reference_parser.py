@@ -1,0 +1,1 @@
+"""Module reference parser."""

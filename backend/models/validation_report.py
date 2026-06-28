@@ -1,0 +1,1 @@
+"""ValidationReport ORM model."""

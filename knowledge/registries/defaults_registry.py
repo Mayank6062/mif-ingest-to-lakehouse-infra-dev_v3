@@ -1,0 +1,1 @@
+"""Defaults registry."""

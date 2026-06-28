@@ -1,0 +1,2 @@
+// Placeholder: auth service
+export {};

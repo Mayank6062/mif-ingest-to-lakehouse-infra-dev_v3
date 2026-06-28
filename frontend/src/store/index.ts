@@ -1,0 +1,2 @@
+// Placeholder: store index
+export {};

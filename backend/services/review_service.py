@@ -1,0 +1,1 @@
+"""Assemble review payload + diffs."""

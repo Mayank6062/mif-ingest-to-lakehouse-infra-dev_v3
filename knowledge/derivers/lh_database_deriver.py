@@ -1,0 +1,1 @@
+"""LH database name deriver."""

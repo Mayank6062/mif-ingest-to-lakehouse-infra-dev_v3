@@ -1,0 +1,1 @@
+"""Canonical state key names."""

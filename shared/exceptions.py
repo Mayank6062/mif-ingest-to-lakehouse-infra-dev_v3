@@ -1,0 +1,1 @@
+"""CopilotException hierarchy (canonical)."""

@@ -1,0 +1,1 @@
+# Placeholder Mako script template

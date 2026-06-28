@@ -1,0 +1,1 @@
+"""Allowed variables per prompt."""

@@ -1,0 +1,1 @@
+"""PRResponse DTO."""

@@ -1,0 +1,2 @@
+// Placeholder: useAuth hook
+export {};

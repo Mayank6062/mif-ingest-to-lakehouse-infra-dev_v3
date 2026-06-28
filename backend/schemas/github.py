@@ -1,0 +1,1 @@
+"""GitHub-related DTOs."""

@@ -1,0 +1,1 @@
+-- DDL reference (documentation placeholder)

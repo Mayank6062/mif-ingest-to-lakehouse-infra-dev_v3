@@ -1,0 +1,1 @@
+"""Integration test: session recovery."""

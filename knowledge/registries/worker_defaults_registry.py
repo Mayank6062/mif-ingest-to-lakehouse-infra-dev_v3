@@ -1,0 +1,1 @@
+"""Worker defaults registry."""

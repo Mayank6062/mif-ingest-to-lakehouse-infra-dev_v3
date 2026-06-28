@@ -1,0 +1,2 @@
+// Placeholder: agent types
+export {};

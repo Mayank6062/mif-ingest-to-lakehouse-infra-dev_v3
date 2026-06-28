@@ -1,0 +1,2 @@
+// Placeholder: useDraft hook
+export {};

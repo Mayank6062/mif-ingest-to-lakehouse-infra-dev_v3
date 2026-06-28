@@ -1,0 +1,1 @@
+"""Kafka secret name deriver."""
